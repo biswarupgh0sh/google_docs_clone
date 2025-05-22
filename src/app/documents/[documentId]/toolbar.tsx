@@ -3,11 +3,99 @@
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import { useEditorStore } from "@/store/use-editor-store";
-import { BoldIcon, ChevronDownIcon, ItalicIcon, ListTodoIcon, LucideIcon, MessageSquarePlusIcon, PrinterIcon, Redo2Icon, RemoveFormattingIcon, SpellCheckIcon, UnderlineIcon, Undo2Icon } from "lucide-react";
+import { BoldIcon, ChevronDownIcon, HighlighterIcon, ItalicIcon, Link2Icon, ListTodoIcon, LucideIcon, MessageSquarePlusIcon, PrinterIcon, Redo2Icon, RemoveFormattingIcon, SpellCheckIcon, UnderlineIcon, Undo2Icon } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { type Level } from "@tiptap/extension-heading"
+import { type ColorResult, SketchPicker } from "react-color";
+import { type Level } from "@tiptap/extension-heading";
+import { useState } from "react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+
+const LinkButton = () => {
+    const { editor } = useEditorStore();
+    const [value, setValue] = useState("");
+
+    const onChange = (href: string) => {
+        editor?.chain().focus().extendMarkRange("link").setLink({ href }).run();
+        setValue("");
+    };
+
+    return (
+        <DropdownMenu onOpenChange={(open) => {
+            if(open){
+            setValue(editor?.getAttributes("link").href || "")
+            }
+            }}>
+            <DropdownMenuTrigger asChild>
+        <button
+        className="h-7 min-w-7 shrink-0 flex flex-col items-center justify-center rounded-sm hover:bg-neutral-200/80 px-1.5 overflow-hidden text-sm"
+        >
+            <Link2Icon className="size-4" />
+        </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="flex items-center gap-x-2 p-2.5">
+                <Input
+                placeholder="https://example.com"
+                value={value}
+                onChange={(e) => setValue(e.target.value)}
+                />
+                <Button onClick={() => onChange(value)} >Apply</Button>
+            </DropdownMenuContent>
+        </DropdownMenu>
+    )
+}
+
+const HighlightColorButton = () => {
+    const { editor } = useEditorStore();
+
+    const value = editor?.getAttributes("highlight").color || "#FFFFFF"
+    const onChange = (color: ColorResult) => {
+        editor?.chain().focus().setHighlight({ color: color.hex }).run();
+    }
 
 
+    return (
+        <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+        <button
+        className="h-7 min-w-7 shrink-0 flex flex-col items-center justify-center rounded-sm hover:bg-neutral-200/80 px-1.5 overflow-hidden text-sm"
+        >
+            <HighlighterIcon className="size-4" />
+        </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="p-0">
+                <SketchPicker color={value} onChange={onChange}/>
+            </DropdownMenuContent>
+        </DropdownMenu>
+    )
+}
+
+const TextColorButton = () => {
+    const { editor } = useEditorStore();
+
+    const value = editor?.getAttributes("textStyle").color || "#000000";
+
+    const onChange = (color: ColorResult) => {
+        editor?.chain().focus().setColor(color.hex).run();
+    }
+
+
+    return (
+        <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+        <button
+        className="h-7 min-w-7 shrink-0 flex flex-col items-center justify-center rounded-sm hover:bg-neutral-200/80 px-1.5 overflow-hidden text-sm"
+        >
+            <span className="text-xs">A</span>
+            <div className="w-full h-0.5" style={{ backgroundColor: value }}/>
+        </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="p-0">
+                <SketchPicker color={value} onChange={onChange}/>
+            </DropdownMenuContent>
+        </DropdownMenu>
+    )
+}
 
 const HeadingLevelButton = () => {
     const { editor } = useEditorStore();
@@ -36,7 +124,7 @@ const HeadingLevelButton = () => {
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
-                <button className="h-7 min-w-7 shrink-0 flex items-center justify-center rounded-sm hover:bg-neutral-200/80 px-1.5 overflow-hidden text-sm ">
+                <button className="h-7 min-w-7 shrink-0 flex items-center justify-center rounded-sm hover:bg-neutral-200/80 px-1.5 overflow-hidden text-sm">
                     <span className="truncate">
                         {getCurrentHeading()}
                     </span>
@@ -211,10 +299,10 @@ export const Toolbar = () => {
             {sections[1].map((item, index) => (
                 <ToolbarButton key={index} {...item}/>
             ))}
-            {/* Text color*/}
-            {/* Highlight color*/}
+            <TextColorButton/>
+            <HighlightColorButton/>
             <Separator orientation="vertical" className="h-6 bg-neutral-300" />
-            {/* Link */}
+            <LinkButton/>
             {/* Image */}
             {/* Align */}
             {/* Line height */}
